@@ -1,0 +1,8 @@
+{
+  "name": "SchematicsPlugin",
+  "author": "ShirleyNekoDev",
+  "main": "de.groovybyte.chunky.schematicsplugin.SchematicsPlugin",
+  "version": "${version}",
+  "targetVersion": "${chunkyVersion}",
+  "description": "Plugin for loading Schematics files as Chunky scenes."
+}
