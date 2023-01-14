@@ -9,9 +9,7 @@ plugins {
 }
 
 group = "de.groovybyte.chunky"
-version = "1.0"
-// https://repo.lemaik.de/se/llbit/chunky-core/maven-metadata.xml
-val chunkyVersion = "2.4.4"
+version = "1.0-ALPHA"
 
 repositories {
     mavenLocal()
@@ -21,13 +19,19 @@ repositories {
 }
 
 dependencies {
-    implementation("se.llbit:chunky-core:$chunkyVersion") {
+    implementation("se.llbit:chunky-core:2.5.0-SNAPSHOT") {
         isChanging = true
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 javafx {
-    version = "17.0.2"
+    version = "11.0.2"
     modules = listOf("javafx.controls", "javafx.fxml")
 }
 
@@ -36,14 +40,14 @@ tasks {
         filesMatching("plugin.json") {
             expand(
                 "version" to project.version,
-                "chunkyVersion" to chunkyVersion,
+                "chunkyVersion" to "2.5.0",
             )
         }
     }
 
     withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
 
 //    withType<Jar> {
