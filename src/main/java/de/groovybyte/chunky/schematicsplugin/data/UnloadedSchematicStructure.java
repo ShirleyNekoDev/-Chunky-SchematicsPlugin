@@ -64,7 +64,7 @@ public class UnloadedSchematicStructure implements SchematicStructure {
 	@Override
 	public String toString() {
 		return String.format(
-			"SchematicStructure{unloaded,file=%s}",
+			"SchematicStructure{unloaded, file=%s}",
 			file
 		);
 	}

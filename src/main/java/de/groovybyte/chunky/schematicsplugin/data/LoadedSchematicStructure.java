@@ -98,7 +98,7 @@ public class LoadedSchematicStructure extends UnloadedSchematicStructure {
 	@Override
 	public String toString() {
 		return String.format(
-			"SchematicStructure{file=%s,size=%d⨯%d⨯%d, palette=%d, entities=%d, tileEntities=%d}",
+			"SchematicStructure{file=%s, size=%d⨯%d⨯%d, palette=%d, entities=%d, tileEntities=%d}",
 			file,
 			size.x,
 			size.y,
