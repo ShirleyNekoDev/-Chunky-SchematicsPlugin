@@ -1,6 +1,6 @@
 package de.groovybyte.chunky.schematicsplugin.gui;
 
-import javafx.application.Platform;
+import de.groovybyte.chunky.schematicsplugin.gui.utils.ChunkyFXUtils;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -17,11 +17,11 @@ import java.util.Optional;
 public class ChunkyFXInjector {
 
 	public synchronized static void toggleToSchematicGUI(
-		Scene fxScene, SchematicController schematicController
+		Scene fxScene, SchematicFXController schematicFXController
 	) {
 		if(!isInSchematicGUI()) {
 			toggleBiomeColorsFeature(fxScene, false);
-			toggleChunkReloadingButtons(fxScene, false, schematicController);
+			toggleChunkReloadingButtons(fxScene, false, schematicFXController);
 		}
 	}
 
@@ -87,7 +87,7 @@ public class ChunkyFXInjector {
 	private static Label schematicSceneWarningLabel = null;
 
 	private static void toggleChunkReloadingButtons(
-		Scene fxScene, boolean loadChunks, SchematicController schematicController
+		Scene fxScene, boolean loadChunks, SchematicFXController schematicFXController
 	) {
 		if(loadChunks) {
 			if(sceneYclipPane != null) {
@@ -131,13 +131,13 @@ public class ChunkyFXInjector {
 
 			if(reloadSchematicButton == null) {
 				reloadSchematicButton = new Button("Reload Schematic", new ImageView(Icon.reload.fxImage()));
-				reloadSchematicButton.setOnAction(event -> schematicController.reloadSchematic());
+				reloadSchematicButton.setOnAction(event -> schematicFXController.reloadSchematic());
 			}
 			if(exitSchematicGUIButton == null) {
 				exitSchematicGUIButton = new Button("Exit Schematic Scene",
 					new ImageView(Icon.clear.fxImage())
 				);
-				exitSchematicGUIButton.setOnAction(event -> Platform.runLater(schematicController::closeSchematic));
+				exitSchematicGUIButton.setOnAction(event -> schematicFXController.closeSchematic());
 			}
 			if(schematicSceneWarningLabel == null) {
 				schematicSceneWarningLabel = new Label("Schematic Scene - see SchematicPlugin tab");

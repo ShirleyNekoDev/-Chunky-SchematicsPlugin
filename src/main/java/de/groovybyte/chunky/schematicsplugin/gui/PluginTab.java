@@ -1,47 +1,88 @@
 package de.groovybyte.chunky.schematicsplugin.gui;
 
+import de.groovybyte.chunky.schematicsplugin.SchematicController;
+import de.groovybyte.chunky.schematicsplugin.data.SchematicChangedEvent;
+import de.groovybyte.chunky.schematicsplugin.gui.utils.ChunkyFXUtils;
+import de.groovybyte.chunky.schematicsplugin.gui.utils.FXUtils;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.layout.*;
 import se.llbit.chunky.main.Chunky;
 import se.llbit.chunky.renderer.scene.Scene;
+import se.llbit.chunky.ui.controller.ChunkyFxController;
 import se.llbit.chunky.ui.controller.RenderControlsFxController;
 import se.llbit.chunky.ui.render.RenderControlsTab;
+import se.llbit.chunky.world.Icon;
+import se.llbit.log.Log;
 
 public class PluginTab implements RenderControlsTab {
 
-	private SchematicController schematicController;
+	public final SchematicController schematicController;
+	public final SchematicFXController schematicFXController;
+	private ChunkyFxController chunkyFxController;
+
+	private final VBox root;
+	public final InfoFragment infoFragment;
 
 	public PluginTab(Chunky chunky) {
-		buildGUI();
-		schematicController = new SchematicController(
-			chunky,
-			root::getScene,
-			infoFragment::update
+		schematicController = new SchematicController(chunky);
+		schematicFXController = new SchematicFXController(
+			schematicController,
+			() -> getFxScene().getWindow()
 		);
-	}
 
-	private VBox root;
-	private final InfoFragment infoFragment = new InfoFragment(() -> schematicController.loadSchematic());
-//	private LoaderSettingsFragment loaderSettingsFragment = new LoaderSettingsFragment();
-//	private PluginSettingsFragment pluginSettingsFragment = new PluginSettingsFragment();
-
-	private void buildGUI() {
+		VBox loadButtonBar = new VBox(
+			10.0,
+			FXUtils.newButton(
+				"Open schematic file",
+				Icon.load.fxImage(),
+				evt -> schematicFXController.openSchematic()
+			)
+		);
+		infoFragment = new InfoFragment();
 		root = new VBox(
+			loadButtonBar,
 			infoFragment.getNode()
-//			new Separator(),
-//			loaderSettingsFragment.getNode(),
-//			new Separator(),
-//			pluginSettingsFragment.getNode()
 		);
 		root.setFillWidth(true);
 		root.setPrefWidth(410.0);
 		FXUtils.addSpace(root, 10.0, 10.0);
+
+		schematicController.getSchematicChangeHandler().addEventListener(
+			this::onSchematicChanged
+		);
+		schematicController.getSchematicChangeHandler().addEventListener(
+			infoFragment::onSchematicChanged
+		);
+		schematicController.getSchematicChangeHandler().addEventListener(event -> {
+			System.out.println(event);
+			System.out.println();
+		});
 	}
 
-	@Override
-	public void update(Scene scene) {
-		// TODO(Chunky): tabs not getting notified when a scene is loaded (after another scene has been loaded?)
-		schematicController.updateScene(scene);
+	private javafx.scene.Scene getFxScene() {
+		return root.getScene();
+	}
+
+	public void onSchematicChanged(SchematicChangedEvent event) {
+		if(event.hasLoadingFailed() || event.hasUnloaded()) {
+			Platform.runLater(() -> {
+				ChunkyFXInjector.toggleToChunkGUI(getFxScene());
+				chunkyFxController.refreshSettings();
+				ChunkyFXUtils.selectTab(getFxScene(), "mainTabs", "worldMapTab");
+			});
+			if(event.hasLoadingFailed()) {
+				Exception exception = event.getLoadException();
+				exception.printStackTrace();
+				Log.error("Failed to load schematic: " + exception.getMessage(), exception);
+			}
+		} else if(event.isLoaded()) {
+			Platform.runLater(() -> {
+				ChunkyFXInjector.toggleToSchematicGUI(getFxScene(), schematicFXController);
+				chunkyFxController.getChunkSelection().clearSelection();
+				ChunkyFXUtils.selectTab(getFxScene(), "mainTabs", "previewTab");
+			});
+		}
 	}
 
 	@Override
@@ -57,6 +98,11 @@ public class PluginTab implements RenderControlsTab {
 
 	@Override
 	public void setController(RenderControlsFxController controls) {
-		schematicController.chunkyFxController = controls.getChunkyController();
+		chunkyFxController = controls.getChunkyController();
+	}
+
+	@Override
+	public void update(Scene scene) {
+		// on scene update when the tab is open
 	}
 }

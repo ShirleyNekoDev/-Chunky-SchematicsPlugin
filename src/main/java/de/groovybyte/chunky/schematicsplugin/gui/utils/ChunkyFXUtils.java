@@ -1,4 +1,4 @@
-package de.groovybyte.chunky.schematicsplugin.gui;
+package de.groovybyte.chunky.schematicsplugin.gui.utils;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;

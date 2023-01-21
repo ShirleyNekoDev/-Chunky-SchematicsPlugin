@@ -1,30 +1,25 @@
 package de.groovybyte.chunky.schematicsplugin.gui;
 
 import de.groovybyte.chunky.schematicsplugin.data.LoadedSchematicStructure;
+import de.groovybyte.chunky.schematicsplugin.data.SchematicChangedEvent;
 import de.groovybyte.chunky.schematicsplugin.data.SchematicStructure;
+import de.groovybyte.chunky.schematicsplugin.gui.utils.FXUtils;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import se.llbit.chunky.world.Icon;
 
 public class InfoFragment {
 
 	private final VBox root;
-	private final Button loadButton = new Button("Load Schematic");
 	private final TextField fileName = FXUtils.newOutputTextField();
 
 	private final TitledPane details;
 
-	public InfoFragment(Runnable loadSchematicCallback) {
-		loadButton.setOnAction(evt -> loadSchematicCallback.run());
-		loadButton.setGraphic(new ImageView(Icon.load.fxImage()));
-
+	public InfoFragment() {
 		details = new TitledPane("Schematic Metadata", buildDetailsNode());
 		details.setAnimated(false);
 		details.setMinWidth(140.0);
@@ -35,12 +30,11 @@ public class InfoFragment {
 		fileBox.setAlignment(Pos.BASELINE_LEFT);
 
 		root = new VBox(
-			loadButton,
 			fileBox,
 			details
 		);
 		FXUtils.addSpace(root, 10.0, 0.0);
-		update(null);
+		reset();
 	}
 
 	private final TextField format = FXUtils.newOutputTextField();
@@ -72,16 +66,22 @@ public class InfoFragment {
 		return root;
 	}
 
-	public void update(SchematicStructure schematic) {
-		if(schematic == null) {
-			FXUtils.setTextAndTooltip(fileName, "nothing loaded");
-			fileName.setDisable(true);
-			details.setDisable(true);
-			details.setExpanded(false);
+
+	private void reset() {
+		FXUtils.setTextAndTooltip(fileName, "nothing loaded");
+		fileName.setDisable(true);
+		details.setDisable(true);
+		details.setExpanded(false);
+	}
+
+	public void onSchematicChanged(SchematicChangedEvent event) {
+		if(!event.hasSchematic()) {
+			reset();
 		} else {
+			SchematicStructure schematic = event.getSchematic();
 			FXUtils.setTextAndTooltip(fileName, schematic.getFile().toString());
 			fileName.setDisable(false);
-			if(schematic instanceof LoadedSchematicStructure) {
+			if(event.isLoaded()) {
 				details.setDisable(false);
 				details.setExpanded(true);
 				LoadedSchematicStructure structure = (LoadedSchematicStructure) schematic;

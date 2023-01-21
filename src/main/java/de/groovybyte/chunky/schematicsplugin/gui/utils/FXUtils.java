@@ -1,16 +1,21 @@
-package de.groovybyte.chunky.schematicsplugin.gui;
+package de.groovybyte.chunky.schematicsplugin.gui.utils;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
+import se.llbit.fxutil.Dialogs;
 
 public class FXUtils {
 
@@ -23,6 +28,10 @@ public class FXUtils {
 				sceneProperty.removeListener(this);
 			}
 		});
+	}
+
+	public static void setPadding(Pane pane, double padding) {
+		pane.setPadding(new Insets(padding));
 	}
 
 	public static void addSpace(VBox pane, double spacing, double padding) {
@@ -60,5 +69,37 @@ public class FXUtils {
 		textField.setEditable(false);
 		textField.getStyleClass().add("outputField");
 		return textField;
+	}
+
+	public static Button newButton(
+		String label,
+		Image icon,
+		EventHandler<ActionEvent> onAction
+	) {
+		Button button = new Button(label);
+		if(icon != null) button.setGraphic(new ImageView(icon));
+		button.setOnAction(onAction);
+		return button;
+	}
+
+	public static ConfirmChoice confirm(
+		Window window, String title, String contextText
+	) {
+		Alert alert = Dialogs.createAlert(Alert.AlertType.CONFIRMATION);
+		alert.initOwner(window);
+		alert.setTitle(title);
+		alert.setContentText(contextText);
+		if(alert.showAndWait().filter(buttonType -> buttonType == ButtonType.OK).isPresent())
+			return ConfirmChoice.CONFIRM;
+		return ConfirmChoice.DENY;
+	}
+
+	public enum ConfirmChoice {
+		CONFIRM, DENY;
+
+		public void onConfirm(Runnable callback) {
+			if(this == CONFIRM)
+				callback.run();
+		}
 	}
 }

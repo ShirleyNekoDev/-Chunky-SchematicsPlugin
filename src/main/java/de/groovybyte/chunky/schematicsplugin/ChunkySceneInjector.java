@@ -89,7 +89,7 @@ public class ChunkySceneInjector {
 		return octree;
 	}
 
-	public static boolean injectIntoScene(
+	public static void injectIntoScene(
 		LoadedSchematicStructure structure,
 		Scene scene,
 		boolean alignCamera
@@ -98,7 +98,7 @@ public class ChunkySceneInjector {
 
 		Octree octree = structureToOctree(structure);
 		if(octree == null)
-			return false;
+			throw new IllegalStateException("Failed to create octree");
 		octree.startFinalization();
 		// TODO: finalize octrees
 		octree.endFinalization();
@@ -132,7 +132,6 @@ public class ChunkySceneInjector {
 		if(alignCamera) {
 			alignCamera(structure, octree, scene);
 		}
-		return true;
 	}
 
 	private static void alignCamera(LoadedSchematicStructure structure, Octree octree, Scene scene) {
