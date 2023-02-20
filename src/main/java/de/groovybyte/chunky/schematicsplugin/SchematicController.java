@@ -59,10 +59,10 @@ public class SchematicController {
 	private void setCurrentSchematic(LoadedSchematicStructure structure, boolean alignCamera) {
 		try {
 			currentSchematic = structure;
-			sceneProvider.withSceneProtected(scene -> {
+			sceneProvider.withEditSceneProtected(scene -> {
+				scene.refresh();
 				ChunkySceneInjector.injectIntoScene(currentSchematic, scene, alignCamera);
 				SchematicSceneSerializer.saveToScene(currentSchematic, scene);
-				scene.refresh();
 				lastSchematicDirectory = structure.getFile().getParentFile();
 
 				Log.info("Loaded schematic \"" + currentSchematic.getFile() + "\"");
@@ -76,7 +76,7 @@ public class SchematicController {
 
 	public void loadSchematicFromFile(File file) {
 		lastSchematicDirectory = file.getParentFile();
-		sceneProvider.withSceneProtected(scene ->
+		sceneProvider.withEditSceneProtected(scene ->
 			ChunkySceneInjector.resetScene(scene, chunky.getSceneFactory())
 		);
 		loadSchematic(new UnloadedSchematicStructure(file), true);
@@ -119,7 +119,7 @@ public class SchematicController {
 	public void closeSchematic() {
 		if(currentSchematic != null) {
 			currentSchematic = null;
-			sceneProvider.withSceneProtected(scene -> ChunkySceneInjector.resetScene(scene,
+			sceneProvider.withEditSceneProtected(scene -> ChunkySceneInjector.resetScene(scene,
 				chunky.getSceneFactory()
 			));
 		}
