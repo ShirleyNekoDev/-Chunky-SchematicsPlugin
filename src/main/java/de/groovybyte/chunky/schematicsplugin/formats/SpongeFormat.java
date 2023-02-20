@@ -78,43 +78,41 @@ public class SpongeFormat implements SchematicFormat {
 		return idMapping;
 	}
 
-	/**
-	 * Each integer is bitpacked into a single byte with varint encoding.
-	 * The first byte determines the length of the integer with a
-	 * maximum length of 5 (for a 32 bit number), and depending on the length,
-	 * each proceeding byte is or'ed and current value bit shifted by
-	 * the length multiplied by 7.
-	 *
-	 * https://github.com/SpongePowered/Sponge/blob/aa2c8c53b4f9f40297e6a4ee281bee4f4ce7707b/src/main/java/org/spongepowered/common/data/persistence/SchematicTranslator.java#L147-L175
-	 * https://github.com/SpongePowered/Sponge/blob/aa2c8c53b4f9f40297e6a4ee281bee4f4ce7707b/src/main/java/org/spongepowered/common/data/persistence/SchematicTranslator.java#L230-L251
-	 */
-	void readVarIntArray(byte[] bytes) {
-
-	}
-
 	private void readBlocks(
 		LoadedSchematicStructure structure,
 		Map<Integer, Integer> idMapping,
 		CompoundTag root
 	) throws IOException {
 		// Specifies the main storage array which contains Width * Height * Length entries.
-		// Each entry is specified as a varint and refers to an index within the Palette.
-		// The entries are indexed by x + z * Width + y * Width * Length.
+		// Each entry refers to an index within the Palette and is specified as a varint:
+		// > The first byte determines the length of the integer with a maximum length
+		//   of 5 (for a 32 bit number), and depending on the length, each proceeding byte
+		//   is or'ed and current value bit shifted by the length multiplied by 7.
 		byte[] blockData = root.get("BlockData").byteArray();
 
-		// TODO: varint decoding
-		if(structure.blockPalette.getPalette().size() > 255) {
-			throw new UnsupportedOperationException("Not yet supported");
-		}
+		// varint decoding code from:
+		// https://github.com/SpongePowered/Sponge/blob/aa2c8c53b4f9f40297e6a4ee281bee4f4ce7707b/src/main/java/org/spongepowered/common/data/persistence/SchematicTranslator.java#L147-L175
+		int blockIndex = 0;
+		int byteIndex = 0;
+		int blockId, varintLength;
+		while (byteIndex < blockData.length) {
+			blockId = 0;
+			varintLength = 0;
 
-		for(int y = 0; y < structure.size.y; y++) {
-			for(int z = 0; z < structure.size.z; z++) {
-				for(int x = 0; x < structure.size.x; x++) {
-					int i = (y * structure.size.z + z) * structure.size.x + x;
-					byte blockId = blockData[i];
-					structure.blocks[i] = idMapping.get(blockId&0xff);
+			while (true) {
+				blockId |= (blockData[byteIndex] & 127) << (varintLength++ * 7);
+				if (varintLength > 5) {
+					throw new IOException("VarInt too big (probably corrupted data)");
 				}
+				if ((blockData[byteIndex] & 128) != 128) {
+					byteIndex++;
+					break;
+				}
+				byteIndex++;
 			}
+
+			structure.blocks[blockIndex] = idMapping.get(blockId);
+			blockIndex++;
 		}
 	}
 
